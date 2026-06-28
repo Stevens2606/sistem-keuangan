@@ -30,29 +30,6 @@
             margin-top: 4px;
         }
 
-        .ringkasan {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .kartu {
-            flex: 1;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px 14px;
-        }
-
-        .kartu .label {
-            font-size: 10px;
-            color: #6b7280;
-            margin-bottom: 4px;
-        }
-
-        .kartu .nilai {
-            font-size: 14px;
-            font-weight: bold;
-        }
 
         .masuk  { color: #16a34a; }
         .keluar { color: #dc2626; }
