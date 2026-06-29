@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use App\Models\ActivityLog;
 
 class ProfileController extends Controller
 {
@@ -33,6 +34,8 @@ class ProfileController extends Controller
             'email' => $request->email,
         ]);
 
+        ActivityLog::catat('Edit Profil', 'Profil', 'Memperbarui profil: ' . $user->name);
+
         return redirect()->route('profile.edit')
             ->with('success', 'Profil berhasil diupdate!');
     }
@@ -40,8 +43,8 @@ class ProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
-            'current_password'          => 'required',
-            'password'                  => ['required', 'confirmed', Password::min(8)],
+            'current_password' => 'required',
+            'password'         => ['required', 'confirmed', Password::min(8)],
         ], [
             'current_password.required' => 'Password lama wajib diisi.',
             'password.required'         => 'Password baru wajib diisi.',
@@ -59,13 +62,14 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        ActivityLog::catat('Ganti Password', 'Profil', 'Mengganti password akun: ' . Auth::user()->name);
+
         return redirect()->route('profile.edit')
             ->with('success_password', 'Password berhasil diubah!');
     }
 
     public function destroy(Request $request)
     {
-        // Kosongkan — tidak perlu hapus akun untuk sistem ini
         return redirect()->route('profile.edit');
     }
 }

@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use App\Models\ActivityLog;
 
 class KategoriController extends Controller
 {
@@ -32,7 +33,9 @@ class KategoriController extends Controller
             'deskripsi.max' => 'Deskripsi maksimal 255 karakter.',
         ]);
 
-        Kategori::create($request->only('nama', 'tipe', 'deskripsi'));
+        $kategori = Kategori::create($request->only('nama', 'tipe', 'deskripsi'));
+
+        ActivityLog::catat('Tambah', 'Kategori', 'Menambahkan kategori: ' . $kategori->nama);
 
         return redirect()->route('kategori.index')
             ->with('success', 'Kategori berhasil ditambahkan!');
@@ -60,19 +63,24 @@ class KategoriController extends Controller
 
         $kategori->update($request->only('nama', 'tipe', 'deskripsi'));
 
+        ActivityLog::catat('Edit', 'Kategori', 'Mengedit kategori: ' . $kategori->nama);
+
         return redirect()->route('kategori.index')
             ->with('success', 'Kategori berhasil diupdate!');
     }
 
     public function destroy(Kategori $kategori)
     {
-        // Cegah hapus jika masih ada transaksi
         if ($kategori->transaksi()->count() > 0) {
             return redirect()->route('kategori.index')
                 ->with('error', 'Kategori tidak bisa dihapus karena masih memiliki transaksi!');
         }
 
+        $nama = $kategori->nama;
         $kategori->delete();
+
+        ActivityLog::catat('Hapus', 'Kategori', 'Menghapus kategori: ' . $nama);
+
         return redirect()->route('kategori.index')
             ->with('success', 'Kategori berhasil dihapus!');
     }

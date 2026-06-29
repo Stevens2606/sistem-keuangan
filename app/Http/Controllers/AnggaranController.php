@@ -5,6 +5,7 @@ use App\Models\Anggaran;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ActivityLog;
 
 class AnggaranController extends Controller
 {
@@ -63,7 +64,7 @@ class AnggaranController extends Controller
             ])->withInput();
         }
 
-        Anggaran::create([
+        $anggaran = Anggaran::create([
             'kategori_id'   => $request->kategori_id,
             'jumlah'        => $request->jumlah,
             'periode_bulan' => $request->periode_bulan,
@@ -71,6 +72,8 @@ class AnggaranController extends Controller
             'keterangan'    => $request->keterangan,
             'created_by'    => Auth::id(),
         ]);
+
+        ActivityLog::catat('Tambah', 'Anggaran', 'Menambahkan anggaran bulan ' . $anggaran->periode_bulan . '/' . $anggaran->periode_tahun);
 
         return redirect()->route('anggaran.index')
             ->with('success', 'Anggaran berhasil ditambahkan!');
@@ -100,13 +103,19 @@ class AnggaranController extends Controller
             'keterangan' => $request->keterangan,
         ]);
 
+        ActivityLog::catat('Edit', 'Anggaran', 'Mengedit anggaran bulan ' . $anggaran->periode_bulan . '/' . $anggaran->periode_tahun);
+
         return redirect()->route('anggaran.index')
             ->with('success', 'Anggaran berhasil diupdate!');
     }
 
     public function destroy(Anggaran $anggaran)
     {
+        $info = 'Anggaran bulan ' . $anggaran->periode_bulan . '/' . $anggaran->periode_tahun;
         $anggaran->delete();
+
+        ActivityLog::catat('Hapus', 'Anggaran', 'Menghapus ' . $info);
+
         return redirect()->route('anggaran.index')
             ->with('success', 'Anggaran berhasil dihapus!');
     }

@@ -71,9 +71,22 @@
         @endif
 
     {{-- Grafik --}}
-    <div class="bg-white rounded-xl shadow p-6 mb-8">
-        <h3 class="text-base font-semibold text-gray-700 mb-4">Grafik 6 Bulan Terakhir</h3>
-        <canvas id="grafikKeuangan" height="100"></canvas>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow p-6 lg:col-span-2">
+            <h3 class="text-base font-semibold text-gray-700 mb-4">Grafik 6 Bulan Terakhir</h3>
+            <canvas id="grafikKeuangan" height="100"></canvas>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-base font-semibold text-gray-700 mb-4">Pengeluaran per Kategori</h3>
+            @if($dataKategori->count() > 0)
+                <div style="height: 260px;">
+                    <canvas id="pieKategori"></canvas>
+                </div>
+            @else
+                <p class="text-sm text-gray-400 text-center py-10">Belum ada data pengeluaran</p>
+            @endif
+        </div>
     </div>
 
     {{-- Transaksi Terbaru --}}
@@ -177,4 +190,47 @@
         }
     });
 </script>
-@endsection 
+
+{{-- Pie Chart Kategori --}}
+@if($dataKategori->count() > 0)
+<script>
+    const paletKategori = [
+        '#3B82F6', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6',
+        '#06B6D4', '#EC4899', '#84CC16', '#F97316', '#6366F1'
+    ];
+
+    const ctxPie = document.getElementById('pieKategori').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: @json($labelKategori),
+            datasets: [{
+                data: @json($dataKategori),
+                backgroundColor: paletKategori,
+                borderWidth: 1,
+                borderColor: '#ffffff',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const persen = ((context.raw / total) * 100).toFixed(1);
+                            return ' ' + context.label + ': Rp ' + context.raw.toLocaleString('id-ID') + ' (' + persen + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+@endif
+@endsection

@@ -4,58 +4,30 @@ namespace App\Http\Controllers;
 use App\Models\Transaksi;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Auth;
 
 class TransaksiController extends Controller
 {
-   public function index(Request $request)
-{
-    $query = Transaksi::with('kategori', 'user');
+    public function index(Request $request)
+    {
+        $query = Transaksi::with('kategori', 'user');
 
-    // Filter tipe
-    if ($request->filled('tipe')) {
-        $query->where('tipe', $request->tipe);
+        if ($request->filled('tipe'))        $query->where('tipe', $request->tipe);
+        if ($request->filled('kategori_id')) $query->where('kategori_id', $request->kategori_id);
+        if ($request->filled('dari'))        $query->whereDate('tanggal', '>=', $request->dari);
+        if ($request->filled('sampai'))      $query->whereDate('tanggal', '<=', $request->sampai);
+        if ($request->filled('min_nominal')) $query->where('jumlah', '>=', $request->min_nominal);
+        if ($request->filled('max_nominal')) $query->where('jumlah', '<=', $request->max_nominal);
+        if ($request->filled('cari'))        $query->where('keterangan', 'like', '%' . $request->cari . '%');
+
+        $transaksi   = $query->latest('tanggal')->paginate(15)->withQueryString();
+        $kategori    = Kategori::orderBy('nama')->get();
+        $totalMasuk  = $query->clone()->where('tipe', 'masuk')->sum('jumlah');
+        $totalKeluar = $query->clone()->where('tipe', 'keluar')->sum('jumlah');
+
+        return view('transaksi.index', compact('transaksi', 'kategori', 'totalMasuk', 'totalKeluar'));
     }
-
-    // Filter kategori
-    if ($request->filled('kategori_id')) {
-        $query->where('kategori_id', $request->kategori_id);
-    }
-
-    // Filter tanggal dari
-    if ($request->filled('dari')) {
-        $query->whereDate('tanggal', '>=', $request->dari);
-    }
-
-    // Filter tanggal sampai
-    if ($request->filled('sampai')) {
-        $query->whereDate('tanggal', '<=', $request->sampai);
-    }
-
-    // Filter nominal minimum
-    if ($request->filled('min_nominal')) {
-        $query->where('jumlah', '>=', $request->min_nominal);
-    }
-
-    // Filter nominal maksimum
-    if ($request->filled('max_nominal')) {
-        $query->where('jumlah', '<=', $request->max_nominal);
-    }
-
-    // Pencarian keterangan
-    if ($request->filled('cari')) {
-        $query->where('keterangan', 'like', '%' . $request->cari . '%');
-    }
-
-    $transaksi        = $query->latest('tanggal')->paginate(15)->withQueryString();
-    $kategori         = Kategori::orderBy('nama')->get();
-    $totalMasuk       = $query->clone()->where('tipe', 'masuk')->sum('jumlah');
-    $totalKeluar      = $query->clone()->where('tipe', 'keluar')->sum('jumlah');
-
-    return view('transaksi.index', compact(
-        'transaksi', 'kategori', 'totalMasuk', 'totalKeluar'
-    ));
-}
 
     public function create()
     {
@@ -86,7 +58,7 @@ class TransaksiController extends Controller
             'tanggal.before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
         ]);
 
-        Transaksi::create([
+        $transaksi = Transaksi::create([
             'kategori_id' => $request->kategori_id,
             'tipe'        => $request->tipe,
             'jumlah'      => $request->jumlah,
@@ -94,6 +66,8 @@ class TransaksiController extends Controller
             'tanggal'     => $request->tanggal,
             'created_by'  => Auth::id(),
         ]);
+
+        ActivityLog::catat('Tambah', 'Transaksi', 'Menambahkan transaksi: ' . $transaksi->keterangan);
 
         return redirect()->route('transaksi.index')
             ->with('success', 'Transaksi berhasil ditambahkan!');
@@ -136,13 +110,19 @@ class TransaksiController extends Controller
             'tanggal'     => $request->tanggal,
         ]);
 
+        ActivityLog::catat('Edit', 'Transaksi', 'Mengedit transaksi: ' . $transaksi->keterangan);
+
         return redirect()->route('transaksi.index')
             ->with('success', 'Transaksi berhasil diupdate!');
     }
 
     public function destroy(Transaksi $transaksi)
     {
+        $nama = $transaksi->keterangan;
         $transaksi->delete();
+
+        ActivityLog::catat('Hapus', 'Transaksi', 'Menghapus transaksi: ' . $nama);
+
         return redirect()->route('transaksi.index')
             ->with('success', 'Transaksi berhasil dihapus!');
     }

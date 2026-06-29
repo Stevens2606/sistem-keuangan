@@ -9,6 +9,7 @@ use App\Http\Controllers\AnggaranController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman welcome
@@ -38,6 +39,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('anggaran', AnggaranController::class);
 
     Route::get('export/excel', [ExportController::class, 'exportExcel'])->name('export.excel');
+
+    Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
+    Route::delete('/activity-log/{activityLog}', [ActivityLogController::class, 'destroy'])->name('activity-log.destroy');
+    Route::delete('/activity-log', [ActivityLogController::class, 'destroyAll'])->name('activity-log.destroyAll');
+
+    Route::get('/activity-log', [ActivityLogController::class, 'index'])
+     ->name('activity-log.index');
 
 
 });

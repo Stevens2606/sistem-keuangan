@@ -43,6 +43,17 @@ class DashboardController extends Controller
             return \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y');
         });
 
+        // Data pie chart — pengeluaran per kategori (keseluruhan)
+        $pengeluaranKategori = Transaksi::where('tipe', 'keluar')
+            ->selectRaw('kategori_id, SUM(jumlah) as total')
+            ->groupBy('kategori_id')
+            ->with('kategori')
+            ->orderByDesc('total')
+            ->get();
+
+        $labelKategori = $pengeluaranKategori->map(fn($item) => $item->kategori->nama ?? 'Tanpa Kategori');
+        $dataKategori  = $pengeluaranKategori->pluck('total');
+
         // Notifikasi anggaran melebihi batas
         $bulanIni  = now()->month;
         $tahunIni  = now()->year;
@@ -82,6 +93,8 @@ class DashboardController extends Controller
             'grafikMasuk',
             'grafikKeluar',
             'labelBulan',
+            'labelKategori',
+            'dataKategori',
             'notifikasiAnggaran'
         ));
     }

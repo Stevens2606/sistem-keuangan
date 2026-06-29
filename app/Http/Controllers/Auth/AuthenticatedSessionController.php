@@ -8,6 +8,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\ActivityLog;
+
 
 class AuthenticatedSessionController extends Controller
 {
@@ -16,6 +18,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
+        ActivityLog::catat('Login',  'Auth', 'Login ke sistem');
+        ActivityLog::catat('Logout', 'Auth', 'Logout dari sistem');
         return view('auth.login');
     }
 
