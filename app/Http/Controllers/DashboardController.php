@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
-use App\Models\Kategori;
+use App\Models\Anggaran;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -43,6 +43,37 @@ class DashboardController extends Controller
             return \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y');
         });
 
+        // Notifikasi anggaran melebihi batas
+        $bulanIni  = now()->month;
+        $tahunIni  = now()->year;
+
+        $notifikasiAnggaran = Anggaran::with('kategori')
+            ->where('periode_bulan', $bulanIni)
+            ->where('periode_tahun', $tahunIni)
+            ->get()
+            ->map(function ($anggaran) use ($bulanIni, $tahunIni) {
+                $realisasi = Transaksi::where('kategori_id', $anggaran->kategori_id)
+                    ->where('tipe', 'keluar')
+                    ->whereMonth('tanggal', $bulanIni)
+                    ->whereYear('tanggal', $tahunIni)
+                    ->sum('jumlah');
+
+                $persentase = $anggaran->jumlah > 0
+                    ? round(($realisasi / $anggaran->jumlah) * 100)
+                    : 0;
+
+                return [
+                    'kategori'   => $anggaran->kategori->nama,
+                    'anggaran'   => $anggaran->jumlah,
+                    'realisasi'  => $realisasi,
+                    'persentase' => $persentase,
+                    'melebihi'   => $realisasi > $anggaran->jumlah,
+                    'mendekati'  => $persentase >= 80 && $realisasi <= $anggaran->jumlah,
+                ];
+            })
+            ->filter(fn($item) => $item['melebihi'] || $item['mendekati'])
+            ->values();
+
         return view('dashboard', compact(
             'totalMasuk',
             'totalKeluar',
@@ -50,7 +81,8 @@ class DashboardController extends Controller
             'transaksiTerbaru',
             'grafikMasuk',
             'grafikKeluar',
-            'labelBulan'
+            'labelBulan',
+            'notifikasiAnggaran'
         ));
     }
 }

@@ -34,6 +34,42 @@
 
     </div>
 
+    {{-- Notifikasi Anggaran --}}
+        @if($notifikasiAnggaran->count() > 0)
+        <div class="mb-6">
+            <h3 class="text-base font-semibold text-gray-700 mb-3">⚠️ Peringatan Anggaran Bulan Ini</h3>
+            <div class="space-y-2">
+                @foreach($notifikasiAnggaran as $notif)
+                <div class="flex items-center justify-between px-4 py-3 rounded-xl border
+                    {{ $notif['melebihi'] ? 'bg-red-50 border-red-300' : 'bg-yellow-50 border-yellow-300' }}">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">{{ $notif['melebihi'] ? '🚨' : '⚠️' }}</span>
+                        <div>
+                            <p class="text-sm font-semibold {{ $notif['melebihi'] ? 'text-red-700' : 'text-yellow-700' }}">
+                                {{ $notif['kategori'] }}
+                                {{ $notif['melebihi'] ? '— MELEBIHI ANGGARAN!' : '— Mendekati Batas' }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                Anggaran: Rp {{ number_format($notif['anggaran'], 0, ',', '.') }} |
+                                Realisasi: Rp {{ number_format($notif['realisasi'], 0, ',', '.') }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold {{ $notif['melebihi'] ? 'text-red-600' : 'text-yellow-600' }}">
+                            {{ $notif['persentase'] }}%
+                        </p>
+                        <div class="w-24 bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="h-2 rounded-full {{ $notif['melebihi'] ? 'bg-red-500' : 'bg-yellow-400' }}"
+                                style="width: {{ min($notif['persentase'], 100) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
     {{-- Grafik --}}
     <div class="bg-white rounded-xl shadow p-6 mb-8">
         <h3 class="text-base font-semibold text-gray-700 mb-4">Grafik 6 Bulan Terakhir</h3>

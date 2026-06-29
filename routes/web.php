@@ -7,6 +7,8 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\AnggaranController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\BackupController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman welcome
@@ -38,6 +40,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('export/excel', [ExportController::class, 'exportExcel'])->name('export.excel');
 
 
+});
+
+// Manajemen User (hanya admin)
+Route::resource('users', UserController::class)->middleware('role:admin');
+
+
+// Backup & Restore (hanya admin)
+Route::middleware('role:admin')->group(function () {
+    Route::get('backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::post('backup/create', [BackupController::class, 'backup'])->name('backup.create');
+    Route::get('backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
+    Route::post('backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
+    Route::delete('backup/hapus/{filename}', [BackupController::class, 'hapus'])->name('backup.hapus');
 });
 
 require __DIR__.'/auth.php';

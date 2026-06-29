@@ -6,10 +6,10 @@
     <title>{{ config('app.name', 'Sistem Keuangan') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100 min-h-screen flex">
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex transition-colors duration-300">
 
     {{-- Sidebar --}}
-    <aside class="w-64 bg-white shadow-md min-h-screen flex flex-col fixed top-0 left-0 z-10">
+    <aside class="w-64 bg-white dark:bg-gray-800 shadow-md min-h-screen flex flex-col fixed top-0 left-0 z-10">
 
         {{-- Logo --}}
         <div class="px-6 py-5 border-b border-gray-100">
@@ -69,6 +69,30 @@
                 </svg>
                 Laporan PDF
             </a>
+            @if(Auth::user()->isAdmin())
+            <a href="{{ route('users.index') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
+                {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Manajemen User
+            </a>
+
+            @if(Auth::user()->isAdmin())
+            <a href="{{ route('backup.index') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition
+                {{ request()->routeIs('backup.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M12 11v6M9 14l3 3 3-3"/>
+                </svg>
+                Backup & Restore
+            </a>
+            @endif
+
+            @endif
 
         </nav>
 
@@ -103,8 +127,7 @@
     <div class="flex-1 ml-64 flex flex-col min-h-screen">
 
         {{-- Topbar --}}
-        <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-            <div>
+            <header class="bg-white dark:bg-gray-800 shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-10">            <div>
                 <h2 class="text-base font-semibold text-gray-800">
                     @yield('title', 'Dashboard')
                 </h2>
@@ -112,9 +135,16 @@
                     {{ now()->locale('id')->translatedFormat('l, d F Y') }}
                 </p>
             </div>
+            <div class="flex items-center gap-4">
+            {{-- Dark Mode Toggle --}}
+            <button id="darkToggle" onclick="toggleDark()"
+                class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition">
+                <span id="darkIcon">🌙</span>
+            </button>
             <div class="text-sm text-gray-500">
                 Selamat datang, <span class="font-medium text-blue-600">{{ Auth::user()->name }}</span>
             </div>
+        </div>
         </header>
 
         {{-- Halaman Content --}}
@@ -128,6 +158,22 @@
         </footer>
 
     </div>
+
+    <script>
+    // Cek preferensi dark mode
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('darkIcon').textContent = '☀️';
+    }
+
+    function toggleDark() {
+        const html = document.documentElement;
+        const isDark = html.classList.toggle('dark');
+        localStorage.setItem('darkMode', isDark);
+        document.getElementById('darkIcon').textContent = isDark ? '☀️' : '🌙';
+    }
+</script>
+
 
 </body>
 </html>
