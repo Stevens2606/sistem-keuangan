@@ -3,37 +3,44 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use App\Models\Anggaran;
+use App\Services\AnggaranNotifikasiService;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Total keseluruhan
-        $totalMasuk  = Transaksi::where('tipe', 'masuk')->sum('jumlah');
-        $totalKeluar = Transaksi::where('tipe', 'keluar')->sum('jumlah');
+        // Total keseluruhan — hanya transaksi yang sudah disetujui
+        $totalMasuk  = Transaksi::approved()->where('tipe', 'masuk')->sum('jumlah');
+        $totalKeluar = Transaksi::approved()->where('tipe', 'keluar')->sum('jumlah');
         $saldo       = $totalMasuk - $totalKeluar;
 
-        // Transaksi terbaru
+        // Transaksi terbaru (tetap tampilkan semua status, termasuk yang menunggu,
+        // supaya admin/bendahara bisa lihat ada pengajuan baru langsung dari dashboard)
         $transaksiTerbaru = Transaksi::with('kategori', 'user')
             ->latest()
             ->take(5)
             ->get();
 
-        // Data grafik — 6 bulan terakhir
+        // Hitung transaksi yang masih menunggu persetujuan, untuk ditampilkan sebagai info/badge di dashboard
+        $jumlahMenunggu = Transaksi::menunggu()->count();
+
+        // Data grafik — 6 bulan terakhir — hanya transaksi disetujui
         $bulanList = collect(range(5, 0))->map(function ($i) {
             return now()->subMonths($i)->format('Y-m');
         });
 
         $grafikMasuk = $bulanList->map(function ($bulan) {
-            return Transaksi::where('tipe', 'masuk')
+            return Transaksi::approved()
+                ->where('tipe', 'masuk')
                 ->whereYear('tanggal', substr($bulan, 0, 4))
                 ->whereMonth('tanggal', substr($bulan, 5, 2))
                 ->sum('jumlah');
         });
 
         $grafikKeluar = $bulanList->map(function ($bulan) {
-            return Transaksi::where('tipe', 'keluar')
+            return Transaksi::approved()
+                ->where('tipe', 'keluar')
                 ->whereYear('tanggal', substr($bulan, 0, 4))
                 ->whereMonth('tanggal', substr($bulan, 5, 2))
                 ->sum('jumlah');
@@ -43,8 +50,9 @@ class DashboardController extends Controller
             return \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y');
         });
 
-        // Data pie chart — pengeluaran per kategori (keseluruhan)
-        $pengeluaranKategori = Transaksi::where('tipe', 'keluar')
+        // Data pie chart — pengeluaran per kategori (keseluruhan) — hanya transaksi disetujui
+        $pengeluaranKategori = Transaksi::approved()
+            ->where('tipe', 'keluar')
             ->selectRaw('kategori_id, SUM(jumlah) as total')
             ->groupBy('kategori_id')
             ->with('kategori')
@@ -54,42 +62,15 @@ class DashboardController extends Controller
         $labelKategori = $pengeluaranKategori->map(fn($item) => $item->kategori->nama ?? 'Tanpa Kategori');
         $dataKategori  = $pengeluaranKategori->pluck('total');
 
-        // Notifikasi anggaran melebihi batas
-        $bulanIni  = now()->month;
-        $tahunIni  = now()->year;
-
-        $notifikasiAnggaran = Anggaran::with('kategori')
-            ->where('periode_bulan', $bulanIni)
-            ->where('periode_tahun', $tahunIni)
-            ->get()
-            ->map(function ($anggaran) use ($bulanIni, $tahunIni) {
-                $realisasi = Transaksi::where('kategori_id', $anggaran->kategori_id)
-                    ->where('tipe', 'keluar')
-                    ->whereMonth('tanggal', $bulanIni)
-                    ->whereYear('tanggal', $tahunIni)
-                    ->sum('jumlah');
-
-                $persentase = $anggaran->jumlah > 0
-                    ? round(($realisasi / $anggaran->jumlah) * 100)
-                    : 0;
-
-                return [
-                    'kategori'   => $anggaran->kategori->nama,
-                    'anggaran'   => $anggaran->jumlah,
-                    'realisasi'  => $realisasi,
-                    'persentase' => $persentase,
-                    'melebihi'   => $realisasi > $anggaran->jumlah,
-                    'mendekati'  => $persentase >= 80 && $realisasi <= $anggaran->jumlah,
-                ];
-            })
-            ->filter(fn($item) => $item['melebihi'] || $item['mendekati'])
-            ->values();
+        // Notifikasi anggaran melebihi batas (logic dipindah ke Service, dipakai juga oleh Bell Icon)
+        $notifikasiAnggaran = AnggaranNotifikasiService::aktif();
 
         return view('dashboard', compact(
             'totalMasuk',
             'totalKeluar',
             'saldo',
             'transaksiTerbaru',
+            'jumlahMenunggu',
             'grafikMasuk',
             'grafikKeluar',
             'labelBulan',

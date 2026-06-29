@@ -13,7 +13,7 @@
 
         {{-- Logo --}}
         <div class="px-6 py-5 border-b border-gray-100">
-            <h1 class="text-lg font-bold text-blue-700">💰 Sistem Keuangan</h1>
+            <h1 class="text-lg font-bold text-blue-700"> Sistem Keuangan</h1>
             <p class="text-xs text-gray-400 mt-0.5">Manajemen Kas</p>
         </div>
 
@@ -151,6 +151,10 @@
                 class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition">
                 <span id="darkIcon">🌙</span>
             </button>
+
+            {{-- Notifikasi Bell Icon --}}
+            @include('partials.notifikasi-bell')
+
             <div class="text-sm text-gray-500">
                 Selamat datang, <span class="font-medium text-blue-600">{{ Auth::user()->name }}</span>
             </div>
@@ -175,13 +179,16 @@
         document.documentElement.classList.add('dark');
         document.getElementById('darkIcon').textContent = '☀️';
     }
+    
 
     function toggleDark() {
         const html = document.documentElement;
         const isDark = html.classList.toggle('dark');
         localStorage.setItem('darkMode', isDark);
         document.getElementById('darkIcon').textContent = isDark ? '☀️' : '🌙';
+        
     }
+    
 </script>
 
 

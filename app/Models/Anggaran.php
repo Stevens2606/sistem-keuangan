@@ -30,9 +30,21 @@ class Anggaran extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * Realisasi anggaran = total transaksi KELUAR yang sudah DISETUJUI
+     * di kategori & periode ini.
+     *
+     * Dua filter penting:
+     * - tipe 'keluar' saja: anggaran adalah batas pengeluaran, transaksi masuk
+     *   tidak relevan dan sebelumnya ikut terhitung secara tidak sengaja (bug).
+     * - status disetujui saja: transaksi yang masih menunggu persetujuan admin
+     *   belum benar-benar mengeluarkan dana, jadi belum boleh mengurangi sisa anggaran.
+     */
     public function realisasi()
     {
-        return Transaksi::where('kategori_id', $this->kategori_id)
+        return Transaksi::approved()
+            ->where('kategori_id', $this->kategori_id)
+            ->where('tipe', 'keluar')
             ->whereMonth('tanggal', $this->periode_bulan)
             ->whereYear('tanggal', $this->periode_tahun)
             ->sum('jumlah');

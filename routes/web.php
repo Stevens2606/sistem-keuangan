@@ -10,6 +10,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\NotifikasiController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman welcome
@@ -32,6 +33,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Kategori & Transaksi
     Route::resource('kategori', KategoriController::class);
     Route::resource('transaksi', TransaksiController::class);
+    Route::get('transaksi/{transaksi}/struk', [TransaksiController::class, 'struk'])->name('transaksi.struk');
+
+    // Approval transaksi keluar — hanya admin (pola sama dengan role:admin di bawah)
+    Route::middleware('role:admin')->group(function () {
+        Route::patch('transaksi/{transaksi}/approve', [TransaksiController::class, 'approve'])->name('transaksi.approve');
+        Route::patch('transaksi/{transaksi}/reject', [TransaksiController::class, 'reject'])->name('transaksi.reject');
+    });
+
+    // Notifikasi bell icon (real-time via Reverb)
+    Route::get('/notifikasi/anggaran-aktif', [NotifikasiController::class, 'anggaranAktif'])->name('notifikasi.anggaran-aktif');
 
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::post('/laporan/cetak', [LaporanController::class, 'cetak'])->name('laporan.cetak');
@@ -43,10 +54,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
     Route::delete('/activity-log/{activityLog}', [ActivityLogController::class, 'destroy'])->name('activity-log.destroy');
     Route::delete('/activity-log', [ActivityLogController::class, 'destroyAll'])->name('activity-log.destroyAll');
-
-    Route::get('/activity-log', [ActivityLogController::class, 'index'])
-     ->name('activity-log.index');
-
 
 });
 

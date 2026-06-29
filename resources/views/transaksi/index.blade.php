@@ -104,6 +104,7 @@
                     <th class="px-4 py-3 text-left">Kategori</th>
                     <th class="px-4 py-3 text-left">Tipe</th>
                     <th class="px-4 py-3 text-right">Jumlah</th>
+                    <th class="px-4 py-3 text-center">Status</th>
                     <th class="px-4 py-3 text-center">Aksi</th>
                 </tr>
             </thead>
@@ -111,7 +112,12 @@
                 @forelse($transaksi as $t)
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 text-gray-500">{{ $t->tanggal->format('d M Y') }}</td>
-                    <td class="px-4 py-3 text-gray-800">{{ $t->keterangan ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-800">
+                        {{ $t->keterangan ?? '-' }}
+                        @if($t->status == 'ditolak' && $t->catatan_approval)
+                            <p class="text-xs text-red-500 mt-0.5">Ditolak: {{ $t->catatan_approval }}</p>
+                        @endif
+                    </td>
                     <td class="px-4 py-3 text-gray-500">{{ $t->kategori->nama ?? '-' }}</td>
                     <td class="px-4 py-3">
                         @if($t->tipe == 'masuk')
@@ -124,8 +130,34 @@
                         Rp {{ number_format($t->jumlah, 0, ',', '.') }}
                     </td>
                     <td class="px-4 py-3 text-center">
-                        <a href="{{ route('transaksi.edit', $t->id) }}"
-                            class="text-blue-600 hover:underline text-xs mr-2">Edit</a>
+                        @if($t->status == 'menunggu')
+                            <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full whitespace-nowrap">Menunggu</span>
+                        @elseif($t->status == 'disetujui')
+                            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full whitespace-nowrap">Disetujui</span>
+                        @else
+                            <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full whitespace-nowrap">Ditolak</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3 text-center whitespace-nowrap">
+                        @if($t->status != 'ditolak')
+                            <a href="{{ route('transaksi.edit', $t->id) }}"
+                                class="text-blue-600 hover:underline text-xs mr-2">Edit</a>
+                        @endif
+                        <a href="{{ route('transaksi.struk', $t->id) }}" target="_blank"
+                            class="text-gray-500 hover:underline text-xs mr-2">Cetak</a>
+
+                        @if($t->status == 'menunggu' && auth()->user()->role === 'admin')
+                            <form action="{{ route('transaksi.approve', $t->id) }}" method="POST"
+                                class="inline" onsubmit="return confirm('Setujui transaksi ini?')">
+                                @csrf @method('PATCH')
+                                <button type="submit" class="text-green-600 hover:underline text-xs mr-2">Setuju</button>
+                            </form>
+                            <button type="button" class="text-red-600 hover:underline text-xs mr-2"
+                                onclick="document.getElementById('modalTolak{{ $t->id }}').classList.remove('hidden')">
+                                Tolak
+                            </button>
+                        @endif
+
                         <form action="{{ route('transaksi.destroy', $t->id) }}" method="POST"
                             class="inline" onsubmit="return confirm('Hapus transaksi ini?')">
                             @csrf @method('DELETE')
@@ -133,9 +165,34 @@
                         </form>
                     </td>
                 </tr>
+
+                {{-- Modal alasan tolak (khusus baris yang masih menunggu) --}}
+                @if($t->status == 'menunggu' && auth()->user()->role === 'admin')
+                <tr id="modalTolak{{ $t->id }}" class="hidden">
+                    <td colspan="7" class="bg-red-50 px-4 py-3 border-t border-red-200">
+                        <form action="{{ route('transaksi.reject', $t->id) }}" method="POST">
+                            @csrf @method('PATCH')
+                            <textarea name="catatan_approval" rows="2" required
+                                placeholder="Alasan penolakan (wajib diisi)..."
+                                class="w-full border border-red-300 rounded-lg px-3 py-2 text-sm mb-2"></textarea>
+                            <div class="flex gap-2">
+                                <button type="submit"
+                                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-medium">
+                                    Kirim Penolakan
+                                </button>
+                                <button type="button"
+                                    onclick="document.getElementById('modalTolak{{ $t->id }}').classList.add('hidden')"
+                                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium">
+                                    Batal
+                                </button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+                @endif
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-400">
                         Belum ada transaksi.
                         <a href="{{ route('transaksi.index') }}" class="text-blue-500 hover:underline ml-1">Reset filter</a>
                     </td>
