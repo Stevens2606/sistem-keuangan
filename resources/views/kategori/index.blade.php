@@ -1,79 +1,73 @@
 @extends('layouts.app')
 
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Manajemen Kategori
-        </h2>
-    </x-slot>
+@section('title', 'Kategori')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+@section('content')
+<div class="container mx-auto px-4 py-6">
 
-                @if(session('success'))
-                    <div class="bg-green-100 text-green-800 p-3 rounded mb-4">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                <div class="flex justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Daftar Kategori</h3>
-                    <a href="{{ route('kategori.create') }}" 
-                       class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        + Tambah Kategori
-                    </a>
-                </div>
-
-                <table class="w-full border-collapse border border-gray-300">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border p-3 text-left">No</th>
-                            <th class="border p-3 text-left">Nama</th>
-                            <th class="border p-3 text-left">Tipe</th>
-                            <th class="border p-3 text-left">Deskripsi</th>
-                            <th class="border p-3 text-left">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($kategori as $index => $item)
-                        <tr class="hover:bg-gray-50">
-                            <td class="border p-3">{{ $index + 1 }}</td>
-                            <td class="border p-3">{{ $item->nama }}</td>
-                            <td class="border p-3">
-                                <span class="px-2 py-1 rounded text-sm
-                                    {{ $item->tipe == 'masuk' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ ucfirst($item->tipe) }}
-                                </span>
-                            </td>
-                            <td class="border p-3">{{ $item->deskripsi ?? '-' }}</td>
-                            <td class="border p-3">
-                                <a href="{{ route('kategori.edit', $item) }}" 
-                                   class="bg-yellow-400 text-white px-3 py-1 rounded text-sm hover:bg-yellow-500">
-                                    Edit
-                                </a>
-                                <form action="{{ route('kategori.destroy', $item) }}" 
-                                      method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            onclick="return confirm('Yakin hapus?')"
-                                            class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
-                                        Hapus
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="border p-3 text-center text-gray-500">
-                                Belum ada kategori
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-800">Daftar Kategori</h2>
+        <a href="{{ route('kategori.create') }}"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+            + Tambah Kategori
+        </a>
     </div>
-</x-app-layout>
+
+       @if(session('success'))
+            <div class="bg-green-100 text-green-700 border border-green-300 rounded-lg px-4 py-3 mb-4">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-red-100 text-red-700 border border-red-300 rounded-lg px-4 py-3 mb-4">
+                {{ session('error') }}
+            </div>
+        @endif
+
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-3 text-left">No</th>
+                    <th class="px-4 py-3 text-left">Nama</th>
+                    <th class="px-4 py-3 text-left">Tipe</th>
+                    <th class="px-4 py-3 text-left">Deskripsi</th>
+                    <th class="px-4 py-3 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @forelse($kategori as $index => $item)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-gray-500">{{ $index + 1 }}</td>
+                    <td class="px-4 py-3 font-medium text-gray-800">{{ $item->nama }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                            {{ $item->tipe == 'masuk' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                            {{ ucfirst($item->tipe) }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-500">{{ $item->deskripsi ?? '-' }}</td>
+                    <td class="px-4 py-3 text-center">
+                        <a href="{{ route('kategori.edit', $item) }}"
+                            class="text-blue-600 hover:underline text-xs mr-2">Edit</a>
+                        <form action="{{ route('kategori.destroy', $item) }}" method="POST"
+                            class="inline" onsubmit="return confirm('Yakin hapus?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="text-red-500 hover:underline text-xs">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+                        Belum ada kategori.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+</div>
+@endsection

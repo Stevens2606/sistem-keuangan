@@ -21,15 +21,15 @@
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Jenis</label>
-                <select name="jenis"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('jenis') border-red-500 @enderror">
-                    <option value="">-- Pilih Jenis --</option>
-                    <option value="pemasukan" {{ old('jenis', $kategori->jenis) == 'pemasukan' ? 'selected' : '' }}>Pemasukan</option>
-                    <option value="pengeluaran" {{ old('jenis', $kategori->jenis) == 'pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
-                </select>
-                @error('jenis')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
+                <select name="tipe"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">-- Pilih Tipe --</option>
+                <option value="masuk" {{ old('tipe', $kategori->tipe) == 'masuk' ? 'selected' : '' }}>Masuk</option>
+                <option value="keluar" {{ old('tipe', $kategori->tipe) == 'keluar' ? 'selected' : '' }}>Keluar</option>
+            </select>
+                            @error('tipe')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
             </div>
 
             <div class="mb-6">

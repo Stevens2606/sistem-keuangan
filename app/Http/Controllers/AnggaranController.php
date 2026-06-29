@@ -33,10 +33,23 @@ class AnggaranController extends Controller
     {
         $request->validate([
             'kategori_id'   => 'required|exists:kategori,id',
-            'jumlah'        => 'required|numeric|min:1',
+            'jumlah'        => 'required|numeric|min:1000|max:999999999999',
             'periode_bulan' => 'required|integer|between:1,12',
-            'periode_tahun' => 'required|integer|min:2000',
-            'keterangan'    => 'nullable|string',
+            'periode_tahun' => 'required|integer|min:2020|max:2035',
+            'keterangan'    => 'nullable|string|max:255',
+        ], [
+            'kategori_id.required'   => 'Kategori wajib dipilih.',
+            'kategori_id.exists'     => 'Kategori tidak valid.',
+            'jumlah.required'        => 'Jumlah anggaran wajib diisi.',
+            'jumlah.numeric'         => 'Jumlah harus berupa angka.',
+            'jumlah.min'             => 'Jumlah anggaran minimal Rp 1.000.',
+            'jumlah.max'             => 'Jumlah anggaran terlalu besar.',
+            'periode_bulan.required' => 'Bulan wajib dipilih.',
+            'periode_bulan.between'  => 'Bulan tidak valid (1-12).',
+            'periode_tahun.required' => 'Tahun wajib diisi.',
+            'periode_tahun.min'      => 'Tahun minimal 2020.',
+            'periode_tahun.max'      => 'Tahun maksimal 2035.',
+            'keterangan.max'         => 'Keterangan maksimal 255 karakter.',
         ]);
 
         $exists = Anggaran::where('kategori_id', $request->kategori_id)
@@ -72,8 +85,14 @@ class AnggaranController extends Controller
     public function update(Request $request, Anggaran $anggaran)
     {
         $request->validate([
-            'jumlah'     => 'required|numeric|min:1',
-            'keterangan' => 'nullable|string',
+            'jumlah'     => 'required|numeric|min:1000|max:999999999999',
+            'keterangan' => 'nullable|string|max:255',
+        ], [
+            'jumlah.required' => 'Jumlah anggaran wajib diisi.',
+            'jumlah.numeric'  => 'Jumlah harus berupa angka.',
+            'jumlah.min'      => 'Jumlah anggaran minimal Rp 1.000.',
+            'jumlah.max'      => 'Jumlah anggaran terlalu besar.',
+            'keterangan.max'  => 'Keterangan maksimal 255 karakter.',
         ]);
 
         $anggaran->update([

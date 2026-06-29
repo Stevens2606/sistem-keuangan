@@ -1,5 +1,6 @@
-{{-- resources/views/kategori/create.blade.php --}}
 @extends('layouts.app')
+
+@section('title', 'Tambah Kategori')
 
 @section('content')
 <div class="container mx-auto px-4 py-6 max-w-lg">
@@ -20,20 +21,22 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Jenis</label>
-                <select name="jenis"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('jenis') border-red-500 @enderror">
-                    <option value="">-- Pilih Jenis --</option>
-                    <option value="pemasukan" {{ old('jenis') == 'pemasukan' ? 'selected' : '' }}>Pemasukan</option>
-                    <option value="pengeluaran" {{ old('jenis') == 'pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
+                <select name="tipe"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipe') border-red-500 @enderror">
+                    <option value="">-- Pilih Tipe --</option>
+                    <option value="masuk" {{ old('tipe') == 'masuk' ? 'selected' : '' }}>Masuk</option>
+                    <option value="keluar" {{ old('tipe') == 'keluar' ? 'selected' : '' }}>Keluar</option>
                 </select>
-                @error('jenis')
+                @error('tipe')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi <span class="text-gray-400">(opsional)</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Deskripsi <span class="text-gray-400">(opsional)</span>
+                </label>
                 <textarea name="deskripsi" rows="3"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Keterangan tambahan...">{{ old('deskripsi') }}</textarea>
